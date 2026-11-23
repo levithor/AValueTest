@@ -2,9 +2,10 @@
   "name": "avalue-internship-training",
   "version": "1.0.0",
   "private": true,
-  "description": "A simple Hello World Node.js program",
+  "description": "A simple Node.js product information server",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "hello": "node index.js"
   }
 }
