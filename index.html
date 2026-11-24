@@ -1,0 +1,159 @@
+<!--
+Things that I need this script to do: 
+(/) 1. Display a list of products with their names, descriptions, and prices.
+(/) 2. Allow users to add products to a shopping cart.
+(/) 3. Display the number of items in the cart and the list of items added.
+(/) 4. Calculate the total price of items in the cart and display it.
+(/) 5. Apply discounts based on defined conditions
+(/) 6. Allow users to input an amount of money to pay for the items in the cart and calculate the change to be returned.
+( ) 7. Reject zero, negative, or non-integer quantities in the input fields. 
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Product Page</title>
+</head>
+<body>
+    <header>
+        <h1>Current Discount: 10% off items over ฿500</h1>
+    </header>
+    <section>
+        <ul class="product-list">
+            <li class="product-item">
+                <h2 class="product-name">Paper Towels (Size XL)</h2>
+                <p class="product-description">High-quality paper towels for everyday use. The special pattern and thickness is designed for maximum absorbency.</p>
+                <span class="product-price" data-price="65.00">฿65.00</span>
+                <label for="product-1-quantity">Quantity</label>
+                <input id="product-1-quantity" class="quantity-input" type="number" min="1" step="1" value="1">
+                <button class="add-to-cart">Add to Cart</button>
+            </li>
+            <li class="product-item">
+                <h2 class="product-name">Signature Ceramic Cooking Pot</h2>
+                <p class="product-description">Large, oven-safe ceramic cooking pot. Comes with a lid. Multiple different colors are available, all with cream-colored interior.</p>
+                <span class="product-price" data-price="559.00">฿559.00</span>
+                <label for="product-2-quantity">Quantity</label>
+                <input id="product-2-quantity" class="quantity-input" type="number" min="1" step="1" value="1">
+                <button class="add-to-cart">Add to Cart</button>
+            </li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Cart (<span id="cart-count">0</span>)</h2>
+        <ul id="cart-items"></ul>
+        <p>Subtotal: <span id="subtotal">฿0.00</span></p>
+        <p>Discount: <span id="discount">฿0.00</span></p>
+        <p><strong>Total: <span id="total-price">฿0.00</span></strong></p>
+    </section>
+
+    <section>
+        <h2>Payment</h2>
+        <label for="payment-amount">Amount paid</label>
+        <input id="payment-amount" type="number" min="0" step="0.01" placeholder="0.00">
+        <button id="calculate-change" type="button">Calculate Change</button>
+        <p><strong>Change: <span id="change-amount">฿0.00</span></strong></p>
+        <p id="payment-message" role="status" aria-live="polite"></p>
+    </section>
+
+    <script>
+        // Button functionality
+        document.querySelectorAll('.add-to-cart').forEach(button =>{
+            button.addEventListener('click', (e) => {
+                const productItem = e.target.closest('.product-item');
+                const productName = productItem.querySelector('.product-name').textContent;
+                const productPrice = parseFloat(productItem.querySelector('.product-price').dataset.price);
+                const quantityInput = productItem.querySelector('.quantity-input');
+                const quantity = parseInt(quantityInput.value);
+
+                if (isNaN(quantity) || quantity <= 0) {
+                    alert('Please enter a valid quantity (greater than 0).');
+                    return;
+                }
+
+                // Add to cart logic here
+                cart.push({ name: productName, price: productPrice, quantity: quantity });
+                updateCartDisplay();
+            });
+        })
+
+        // Cart functionality (stored as objects in an array)
+        let cart = []; // Array to hold cart items
+        let cartTotal = 0;
+
+        function updateCartDisplay() { 
+            const cartItems = document.getElementById('cart-items');
+            const cartCount = document.getElementById('cart-count');
+            const subtotal = document.getElementById('subtotal');
+            const discount = document.getElementById('discount');
+            const total = document.getElementById('total-price');
+
+            // Clear cart display
+            cartItems.innerHTML = '';
+
+            // Calculate totals
+            let totalItems = 0;
+            let totalValue = 0;
+
+            // Display each item in the cart
+            cart.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.name} - ฿${item.price.toFixed(2)} x ${item.quantity}`;
+                cartItems.appendChild(li);
+
+                totalItems += item.quantity;
+                totalValue += item.price * item.quantity;
+            });
+
+            // Update cart count
+            cartCount.textContent = totalItems;
+
+            // Update subtotal
+            subtotal.textContent = `฿${totalValue.toFixed(2)}`;
+
+            // Apply a 10% discount if the total value is greater than ฿50
+            if (totalValue > 50) {
+                discount.textContent = `฿${(totalValue * 0.1).toFixed(2)}`;
+                totalValue -= totalValue * 0.1;
+            } else {
+                discount.textContent = '฿0.00';
+            }
+
+            // Update total
+            cartTotal = totalValue;
+            total.textContent = `฿${(totalValue).toFixed(2)}`;
+        }
+
+        // Calculate change once, regardless of whether the cart has items.
+        document.getElementById('calculate-change').addEventListener('click', () => {
+            const paymentAmountInput = document.getElementById('payment-amount');
+            const changeAmount = document.getElementById('change-amount');
+            const paymentMessage = document.getElementById('payment-message');
+            const paymentAmount = parseFloat(paymentAmountInput.value);
+
+            if (cart.length === 0) {
+                paymentMessage.textContent = 'Your cart is empty. Please add items to the cart before making a payment.';
+                changeAmount.textContent = '฿0.00';
+                return;
+            }
+
+            if (paymentAmountInput.value.trim() === '' || isNaN(paymentAmount) || paymentAmount < 0) {
+                paymentMessage.textContent = 'Please enter a valid payment amount (greater than or equal to 0).';
+                changeAmount.textContent = '฿0.00';
+                return;
+            }
+
+            const change = paymentAmount - cartTotal;
+            if (change < 0) {
+                paymentMessage.textContent = 'Insufficient payment. Please provide enough money to cover the total.';
+                changeAmount.textContent = '฿0.00';
+            } else {
+                paymentMessage.textContent = '';
+                changeAmount.textContent = `฿${change.toFixed(2)}`;
+            }
+        });
+    </script>
+</body>
+</html>
