@@ -24,3 +24,9 @@ $RECYCLE.BIN/
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+# Node modules
+node_modules/
+
+# package-lock.json
+package-lock.json
