@@ -5,7 +5,9 @@
   "description": "A simple Node.js product information server",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "hello": "node index.js"
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^5.3.0"
   }
 }
