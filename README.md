@@ -1,4 +1,4 @@
-# AValueTest: Product Information Display
+# AValueTest: Product Information Display (Day 3)
 This is a training repository for my internship at A-Value
 
 # Setup Instructions

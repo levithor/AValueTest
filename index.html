@@ -13,8 +13,8 @@ Day 3:
 (/) 9. Allow users to search for a product by its name or identification code.
 (/) 10. Allow products to have a stock value, and prevent users from adding more items to the cart than are available in stock.
 (/) 11. Allow search to filter by products that are in stock.
-( ) 12. Allow search to sort products by price.
-( ) 13. Be sure to use loops first to understand the underlying logic
+(/) 12. Allow search to sort products by price (High and Low)
+(/) 13. Be sure to use loops first to understand the underlying logic
 Day 4:
 ( ) 14. Allow users to remove cart items
 ( ) 15. Ensure that quantities are combined if the same product is added to the cart multiple times.
@@ -44,8 +44,10 @@ Day 5:
             <input id="product-search" type="search" placeholder="Search by name or ID..." aria-label="Search products by name or ID">
             <input type="checkbox" id="in-stock" name="in-stock" value="yes">
             <label for="in-stock">In Stock</label>
-            <input type="checkbox" id="sort-by-price" name="sort-by-price" value="yes">
-            <label for="sort-by-price">Sort by Price (Low to High)</label>
+            <input type="checkbox" id="sort-by-price-low" name="sort-by-price-low" value="yes">
+            <label for="sort-by-price-low">Sort by Price (Low to High)</label>
+            <input type="checkbox" id="sort-by-price-high" name="sort-by-price-high" value="yes">
+            <label for="sort-by-price-high">Sort by Price (High to Low)</label>
         </div>
     </section>
     <section>
@@ -197,7 +199,8 @@ Day 5:
         function searchProducts(searchTerm) {
             const query = searchTerm.trim().toLowerCase();
             const inStockOnly = document.getElementById('in-stock').checked;
-            const sortByPrice = document.getElementById('sort-by-price').checked;
+            const sortByPriceLow = document.getElementById('sort-by-price-low').checked;
+            const sortByPriceHigh = document.getElementById('sort-by-price-high').checked;
 
             const productItems = productList.querySelectorAll('.product-item');
             for (let i = 0; i < productItems.length; i++) {
@@ -211,7 +214,7 @@ Day 5:
                 productItem.hidden = !matchesSearch || !matchesStock;
             }
 
-            if (sortByPrice) {
+            if (sortByPriceLow || sortByPriceHigh) {
                 const sortedItems = [];
                 for (let i = 0; i < productItems.length; i++) {
                     sortedItems.push(productItems[i]);
@@ -232,6 +235,10 @@ Day 5:
 
                     sortedItems[j + 1] = currentItem;
                 }
+                // Just going to reverse the previous loop to achieve high to low sorting
+                if (sortByPriceHigh) {
+                    sortedItems.reverse();
+                }
 
                 for (let i = 0; i < sortedItems.length; i++) {
                     productList.appendChild(sortedItems[i]);
@@ -251,8 +258,18 @@ Day 5:
         document.getElementById('in-stock').addEventListener('change', () => {
             searchProducts(document.getElementById('product-search').value);
         });
+        // These checkboxes for sorting should cancel each other out
+        document.getElementById('sort-by-price-low').addEventListener('change', () => {
+            if (document.getElementById('sort-by-price-low').checked) {
+                document.getElementById('sort-by-price-high').checked = false;
+            }
+            searchProducts(document.getElementById('product-search').value);
+        });
 
-        document.getElementById('sort-by-price').addEventListener('change', () => {
+        document.getElementById('sort-by-price-high').addEventListener('change', () => {
+            if (document.getElementById('sort-by-price-high').checked) {
+                document.getElementById('sort-by-price-low').checked = false;
+            }
             searchProducts(document.getElementById('product-search').value);
         });
 
