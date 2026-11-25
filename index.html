@@ -44,6 +44,8 @@ Day 5:
             <input id="product-search" type="search" placeholder="Search by name or ID..." aria-label="Search products by name or ID">
             <input type="checkbox" id="in-stock" name="in-stock" value="yes">
             <label for="in-stock">In Stock</label>
+            <input type="checkbox" id="sort-by-price" name="sort-by-price" value="yes">
+            <label for="sort-by-price">Sort by Price (Low to High)</label>
         </div>
     </section>
     <section>
@@ -195,6 +197,7 @@ Day 5:
         function searchProducts(searchTerm) {
             const query = searchTerm.trim().toLowerCase();
             const inStockOnly = document.getElementById('in-stock').checked;
+            const sortByPrice = document.getElementById('sort-by-price').checked;
 
             const productItems = productList.querySelectorAll('.product-item');
             for (let i = 0; i < productItems.length; i++) {
@@ -207,6 +210,38 @@ Day 5:
 
                 productItem.hidden = !matchesSearch || !matchesStock;
             }
+
+            if (sortByPrice) {
+                const sortedItems = [];
+                for (let i = 0; i < productItems.length; i++) {
+                    sortedItems.push(productItems[i]);
+                }
+
+                for (let i = 1; i < sortedItems.length; i++) {
+                    const currentItem = sortedItems[i];
+                    const currentPrice = Number(currentItem.querySelector('.product-price').dataset.price);
+                    let j = i - 1;
+
+                    while (
+                        j >= 0 &&
+                        Number(sortedItems[j].querySelector('.product-price').dataset.price) > currentPrice
+                    ) {
+                        sortedItems[j + 1] = sortedItems[j];
+                        j--;
+                    }
+
+                    sortedItems[j + 1] = currentItem;
+                }
+
+                for (let i = 0; i < sortedItems.length; i++) {
+                    productList.appendChild(sortedItems[i]);
+                }
+            } else {
+                for (let i = 0; i < products.length; i++) {
+                    const productItem = productList.querySelector(`[data-product-id="${products[i].id}"]`);
+                    productList.appendChild(productItem);
+                }
+            }
         }
 
         document.getElementById('product-search').addEventListener('input', event => {
@@ -214,6 +249,10 @@ Day 5:
         });
 
         document.getElementById('in-stock').addEventListener('change', () => {
+            searchProducts(document.getElementById('product-search').value);
+        });
+
+        document.getElementById('sort-by-price').addEventListener('change', () => {
             searchProducts(document.getElementById('product-search').value);
         });
 
