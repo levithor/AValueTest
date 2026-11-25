@@ -11,7 +11,7 @@ Day 2:
 (/) 7. Reject zero, negative, or non-integer quantities.
 Day 3: 
 (/) 8. Give products a product code or ID for easier identification.
-( ) 9. Allow users to search for a product by its name or identification code.
+(/) 9. Allow users to search for a product by its name or identification code.
 ( ) 10. Allow products to have a stock value, and prevent users from adding more items to the cart than are available in stock.
 ( ) 11. Allow search to filter by products that are in stock.
 ( ) 12. Allow search to sort products by price.
@@ -73,19 +73,22 @@ Day 5:
                 id: 1,
                 name: "Paper Towels (Size XL)",
                 description: "High-quality paper towels for everyday use. The special pattern and thickness is designed for maximum absorbency.",
-                price: 65.00
+                price: 65.00,
+                stock: 22
             },
             {
                 id: 2,
                 name: "Signature Ceramic Cooking Pot",
                 description: "Large, oven-safe ceramic cooking pot. Comes with a lid. Multiple different colors are available, all with cream-colored interior.",
-                price: 559.00
+                price: 559.00,
+                stock: 7
             },
             {
                 id: 3,
                 name: "Very Cool Teddy Bear",
                 description: "A teddy bear with sunglasses and a mojito. Comes with built in lung functionality and courtesy cigar",
-                price: 295.00
+                price: 295.00,
+                stock: 2
             }
         ];
         
@@ -111,7 +114,7 @@ Day 5:
 
             const quantityLabel = document.createElement('label');
             quantityLabel.htmlFor = `product-${product.id}-quantity`;
-            quantityLabel.textContent = 'Quantity';
+            quantityLabel.textContent = ' Quantity ';
 
             const quantityInput = document.createElement('input');
             quantityInput.id = `product-${product.id}-quantity`;
@@ -125,7 +128,18 @@ Day 5:
             addButton.className = 'add-to-cart';
             addButton.textContent = 'Add to Cart';
 
-            productItem.append(name, description, price, quantityLabel, quantityInput, addButton);
+            const stock = document.createElement('p');
+            stock.className = 'product-stock';
+            stock.dataset.stock = product.stock;
+            stock.textContent = `Stock: ${product.stock}`;
+
+            productItem.append( name, 
+                                description, 
+                                price, 
+                                quantityLabel, 
+                                quantityInput, 
+                                addButton, 
+                                stock );
             productList.appendChild(productItem);
         });
 
@@ -145,6 +159,13 @@ Day 5:
                 return;
             }
 
+            if (quantity > product.stock) {
+                alert('Not enough product in stock');
+                return;
+            }
+
+            product.stock -= quantity;
+            
             cart.push({
                 id: product.id,
                 name: product.name,
@@ -152,7 +173,20 @@ Day 5:
                 quantity: quantity
             });
             updateCartDisplay();
+            updateProductDisplay(product);
         });
+
+        function updateProductDisplay(product) {
+            const productItem = productList.querySelector(`[data-product-id="${product.id}"]`);
+            const stockDisplay = productItem.querySelector('.product-stock');
+            const quantityInput = productItem.querySelector('.quantity-input');
+            const addButton = productItem.querySelector('.add-to-cart');
+
+            stockDisplay.dataset.stock = product.stock;
+            stockDisplay.textContent = `Stock: ${product.stock}`;
+            quantityInput.max = product.stock;
+            addButton.disabled = product.stock === 0;
+        }
 
         // Filter product cards by their name or ID as the user types.
         function searchProducts(searchTerm) {
@@ -182,8 +216,6 @@ Day 5:
 
             // Clear cart display
             cartItems.innerHTML = '';
-
-            // Calculate totals
             let totalItems = 0;
             let totalValue = 0;
 
