@@ -214,22 +214,22 @@ Day 5:
                 productItem.hidden = !matchesSearch || !matchesStock;
             }
 
-            if (sortByPriceLow || sortByPriceHigh) {
+            if (sortByPriceLow || sortByPriceHigh) { // Called by both options
                 const sortedItems = [];
                 for (let i = 0; i < productItems.length; i++) {
-                    sortedItems.push(productItems[i]);
+                    sortedItems.push(productItems[i]); // Move everything to the temporary array
                 }
 
                 for (let i = 1; i < sortedItems.length; i++) {
-                    const currentItem = sortedItems[i];
-                    const currentPrice = Number(currentItem.querySelector('.product-price').dataset.price);
+                    const currentItem = sortedItems[i]; // Store the current item to be sorted
+                    const currentPrice = Number(currentItem.querySelector('.product-price').dataset.price); // Retrieve the price and convert to number format
                     let j = i - 1;
 
                     while (
-                        j >= 0 &&
+                        j >= 0 && // Compare 'product-price' of current sorted item against original
                         Number(sortedItems[j].querySelector('.product-price').dataset.price) > currentPrice
                     ) {
-                        sortedItems[j + 1] = sortedItems[j];
+                        sortedItems[j + 1] = sortedItems[j]; // Move the sorted item up in the line
                         j--;
                     }
 
@@ -239,7 +239,7 @@ Day 5:
                 if (sortByPriceHigh) {
                     sortedItems.reverse();
                 }
-
+                // Update original array
                 for (let i = 0; i < sortedItems.length; i++) {
                     productList.appendChild(sortedItems[i]);
                 }
@@ -290,9 +290,17 @@ Day 5:
             let totalValue = 0;
 
             // Display each item in the cart
-            cart.forEach(item => {
+            cart.forEach((item, index) => {
                 const li = document.createElement('li');
                 li.textContent = `${item.name} - ฿${item.price.toFixed(2)} x ${item.quantity}`;
+                // Remove Item button
+                const removeButton = document.createElement('button');
+                removeButton.className = 'remove-from-cart';
+                removeButton.type = 'button';
+                removeButton.dataset.cartIndex = index;
+                removeButton.textContent = 'Remove';
+
+                li.appendChild(removeButton);
                 cartItems.appendChild(li);
 
                 totalItems += item.quantity;
@@ -316,6 +324,30 @@ Day 5:
             cartTotal = totalValue;
             total.textContent = `฿${(totalValue).toFixed(2)}`;
         }
+
+        document.getElementById('cart-items').addEventListener('click', event => {
+            const removeButton = event.target.closest('.remove-from-cart');
+            if (!removeButton) {
+                return;
+            }
+
+            const cartIndex = Number(removeButton.dataset.cartIndex);
+            if (!Number.isInteger(cartIndex) || cartIndex < 0 || cartIndex >= cart.length) {
+                return;
+            }
+
+            const item = cart[cartIndex];
+            const product = products.find(product => product.id === item.id);
+            if (!product) {
+                console.error(`Cannot restore stock: product ${item.id} was not found.`);
+                return;
+            }
+
+            cart.splice(cartIndex, 1);
+            product.stock += item.quantity;
+            updateCartDisplay();
+            updateProductDisplay(product);
+        });
 
         // Calculate change once, regardless of whether the cart has items.
         document.getElementById('calculate-change').addEventListener('click', () => {
