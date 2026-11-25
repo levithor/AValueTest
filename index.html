@@ -1,5 +1,4 @@
 <!--
-Things that I need this script to do: 
 Day 1:
 (/) 1. Display a list of products with their names, descriptions, and prices.
 (/) 2. Allow users to add products to a shopping cart.
@@ -12,8 +11,8 @@ Day 2:
 Day 3: 
 (/) 8. Give products a product code or ID for easier identification.
 (/) 9. Allow users to search for a product by its name or identification code.
-( ) 10. Allow products to have a stock value, and prevent users from adding more items to the cart than are available in stock.
-( ) 11. Allow search to filter by products that are in stock.
+(/) 10. Allow products to have a stock value, and prevent users from adding more items to the cart than are available in stock.
+(/) 11. Allow search to filter by products that are in stock.
 ( ) 12. Allow search to sort products by price.
 ( ) 13. Be sure to use loops first to understand the underlying logic
 Day 4:
@@ -43,6 +42,8 @@ Day 5:
     <section>
         <div class="topnav">
             <input id="product-search" type="search" placeholder="Search by name or ID..." aria-label="Search products by name or ID">
+            <input type="checkbox" id="in-stock" name="in-stock" value="yes">
+            <label for="in-stock">In Stock</label>
         </div>
     </section>
     <section>
@@ -165,7 +166,7 @@ Day 5:
             }
 
             product.stock -= quantity;
-            
+
             cart.push({
                 id: product.id,
                 name: product.name,
@@ -176,6 +177,7 @@ Day 5:
             updateProductDisplay(product);
         });
 
+        // Update the product's display to reflect the new stock value
         function updateProductDisplay(product) {
             const productItem = productList.querySelector(`[data-product-id="${product.id}"]`);
             const stockDisplay = productItem.querySelector('.product-stock');
@@ -186,21 +188,33 @@ Day 5:
             stockDisplay.textContent = `Stock: ${product.stock}`;
             quantityInput.max = product.stock;
             addButton.disabled = product.stock === 0;
+            searchProducts(document.getElementById('product-search').value);
         }
 
         // Filter product cards by their name or ID as the user types.
         function searchProducts(searchTerm) {
             const query = searchTerm.trim().toLowerCase();
+            const inStockOnly = document.getElementById('in-stock').checked;
 
-            productList.querySelectorAll('.product-item').forEach(productItem => {
+            const productItems = productList.querySelectorAll('.product-item');
+            for (let i = 0; i < productItems.length; i++) {
+                const productItem = productItems[i];
                 const productName = productItem.querySelector('.product-name').textContent.toLowerCase();
                 const productId = productItem.dataset.productId.toLowerCase();
-                productItem.hidden = !productName.includes(query) && !productId.includes(query);
-            });
+                const productStock = Number(productItem.querySelector('.product-stock').dataset.stock);
+                const matchesSearch = productName.includes(query) || productId.includes(query);
+                const matchesStock = !inStockOnly || productStock > 0;
+
+                productItem.hidden = !matchesSearch || !matchesStock;
+            }
         }
 
         document.getElementById('product-search').addEventListener('input', event => {
             searchProducts(event.target.value);
+        });
+
+        document.getElementById('in-stock').addEventListener('change', () => {
+            searchProducts(document.getElementById('product-search').value);
         });
 
         // Cart functionality (stored as objects in an array)
