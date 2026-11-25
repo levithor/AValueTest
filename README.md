@@ -1,7 +1,5 @@
-# AValueTest
+# AValueTest Product Information Display (Day 2)
 This is a training repository for my internship at A-Value
-
-## Product Information Shower
 
 # Setup Instructions
 
