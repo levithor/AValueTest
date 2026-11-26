@@ -1,5 +1,5 @@
-# AValueTest: Product Information Display (Day 3)
-This is a training repository for my internship at A-Value
+# AValueTest: Product Information Display (Day 4)
+Functions, Array Methods, and Debugging
 
 # Setup Instructions
 
