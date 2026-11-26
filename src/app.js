@@ -1,56 +1,75 @@
-import {products} from './products.js';
+import {loadProducts} from './products.js';
 import {cart, calculateCartTotals, calculateChange} from './cart.js';
+
+let products = [];
+// Async function to delay products
+async function initializeProducts() {
+    const productStatus = document.getElementById('product-status');
+    productStatus.textContent = 'Loading products...';
+
+    try {
+        products = await loadProducts();
+        renderProducts();
+        productStatus.textContent = '';
+    } catch (error) {
+        console.error('Failed to load products:', error);
+        productStatus.textContent = 'Unable to load products. Please try again.';
+    }
+}
+
+function renderProducts() {
+    products.forEach(product => {
+        const productItem = document.createElement('li');
+        productItem.className = 'product-item';
+        productItem.dataset.productId = product.id;
+
+        const name = document.createElement('h2');
+        name.className = 'product-name';
+        name.textContent = product.name;
+
+        const description = document.createElement('p');
+        description.className = 'product-description';
+        description.textContent = product.description;
+
+        const price = document.createElement('span');
+        price.className = 'product-price';
+        price.dataset.price = product.price;
+        price.textContent = `฿${product.price.toFixed(2)}`;
+
+        const quantityLabel = document.createElement('label');
+        quantityLabel.htmlFor = `product-${product.id}-quantity`;
+        quantityLabel.textContent = ' Quantity ';
+
+        const quantityInput = document.createElement('input');
+        quantityInput.id = `product-${product.id}-quantity`;
+        quantityInput.className = 'quantity-input';
+        quantityInput.type = 'number';
+        quantityInput.min = '1';
+        quantityInput.step = '1';
+        quantityInput.value = '1';
+
+        const addButton = document.createElement('button');
+        addButton.className = 'add-to-cart';
+        addButton.textContent = 'Add to Cart';
+
+        const stock = document.createElement('p');
+        stock.className = 'product-stock';
+        stock.dataset.stock = product.stock;
+        stock.textContent = `Stock: ${product.stock}`;
+
+        productItem.append( name, 
+                            description, 
+                            price, 
+                            quantityLabel, 
+                            quantityInput, 
+                            addButton, 
+                            stock );
+        productList.appendChild(productItem);
+    });
+}
 
 // Render each product in a way that doesnt suck and without using HTML
 const productList = document.getElementById('product-list');
-products.forEach(product => {
-    const productItem = document.createElement('li');
-    productItem.className = 'product-item';
-    productItem.dataset.productId = product.id;
-
-    const name = document.createElement('h2');
-    name.className = 'product-name';
-    name.textContent = product.name;
-
-    const description = document.createElement('p');
-    description.className = 'product-description';
-    description.textContent = product.description;
-
-    const price = document.createElement('span');
-    price.className = 'product-price';
-    price.dataset.price = product.price;
-    price.textContent = `฿${product.price.toFixed(2)}`;
-
-    const quantityLabel = document.createElement('label');
-    quantityLabel.htmlFor = `product-${product.id}-quantity`;
-    quantityLabel.textContent = ' Quantity ';
-
-    const quantityInput = document.createElement('input');
-    quantityInput.id = `product-${product.id}-quantity`;
-    quantityInput.className = 'quantity-input';
-    quantityInput.type = 'number';
-    quantityInput.min = '1';
-    quantityInput.step = '1';
-    quantityInput.value = '1';
-
-    const addButton = document.createElement('button');
-    addButton.className = 'add-to-cart';
-    addButton.textContent = 'Add to Cart';
-
-    const stock = document.createElement('p');
-    stock.className = 'product-stock';
-    stock.dataset.stock = product.stock;
-    stock.textContent = `Stock: ${product.stock}`;
-
-    productItem.append( name, 
-                        description, 
-                        price, 
-                        quantityLabel, 
-                        quantityInput, 
-                        addButton, 
-                        stock );
-    productList.appendChild(productItem);
-});
 
 // Cart functionality (stored as objects in an array)
 
@@ -289,3 +308,5 @@ document.getElementById('calculate-change').addEventListener('click', () => {
         changeAmount.textContent = `฿${change.toFixed(2)}`;
     }
 });
+
+initializeProducts();

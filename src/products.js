@@ -1,4 +1,7 @@
-export const products = [
+// export const products = [
+// ];
+
+export const productData = [
     {
         id: 1,
         name: "Paper Towels (Size XL)",
@@ -28,3 +31,8 @@ export const products = [
         stock: 14
     }
 ];
+
+export async function loadProducts() {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return productData.map(product => ({ ...product }));
+}
