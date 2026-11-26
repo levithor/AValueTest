@@ -16,7 +16,7 @@ Day 3:
 (/) 12. Allow search to sort products by price (High and Low)
 (/) 13. Be sure to use loops first to understand the underlying logic
 Day 4:
-( ) 14. Allow users to remove cart items
+(/) 14. Allow users to remove cart items
 ( ) 15. Ensure that quantities are combined if the same product is added to the cart multiple times.
 ( ) 16. Separate the cart total and change the calculations into seperate functions.
 ( ) 17. Handle empty carts, missing products, and invalid quantities.
@@ -37,7 +37,7 @@ Day 5:
 </head>
 <body>
     <header>
-        <h1>Current Discount: 10% off items over ฿500</h1>
+        <h1>Current Discount: 10% off cart over ฿500</h1>
     </header>
     <section>
         <div class="topnav">
@@ -158,6 +158,8 @@ Day 5:
             const product = products.find(item => item.id === Number(productItem.dataset.productId));
             const quantityInput = productItem.querySelector('.quantity-input');
             const quantity = Number(quantityInput.value);
+            const cartItem = cart.find(item => item.id === product.id);
+
 
             if (!Number.isInteger(quantity) || quantity <= 0) {
                 alert('Please enter a valid quantity (a whole number greater than 0).');
@@ -170,13 +172,17 @@ Day 5:
             }
 
             product.stock -= quantity;
-
-            cart.push({
+            // Combines cart quanitites
+            if (cartItem) {
+                cartItem.quantity += quantity;
+            } else {
+                cart.push({
                 id: product.id,
                 name: product.name,
                 price: product.price,
                 quantity: quantity
             });
+            }
             updateCartDisplay();
             updateProductDisplay(product);
         });
@@ -214,6 +220,7 @@ Day 5:
                 productItem.hidden = !matchesSearch || !matchesStock;
             }
 
+            // Sorting algorithm
             if (sortByPriceLow || sortByPriceHigh) { // Called by both options
                 const sortedItems = [];
                 for (let i = 0; i < productItems.length; i++) {
@@ -313,8 +320,8 @@ Day 5:
             // Update subtotal
             subtotal.textContent = `฿${totalValue.toFixed(2)}`;
 
-            // Apply a 10% discount if the total value is greater than ฿50
-            if (totalValue > 50) {
+            // Apply a 10% discount if the total value is greater than ฿500
+            if (totalValue > 500) {
                 discount.textContent = `฿${(totalValue * 0.1).toFixed(2)}`;
                 totalValue -= totalValue * 0.1;
             } else {
@@ -337,12 +344,13 @@ Day 5:
             }
 
             const item = cart[cartIndex];
+            // Finds original product in original array to restore stock
             const product = products.find(product => product.id === item.id);
             if (!product) {
                 console.error(`Cannot restore stock: product ${item.id} was not found.`);
                 return;
             }
-
+            // Remove item from cart array
             cart.splice(cartIndex, 1);
             product.stock += item.quantity;
             updateCartDisplay();
