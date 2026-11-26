@@ -16,8 +16,8 @@ Day 3:
 (/) 12. Allow search to sort products by price (High and Low)
 (/) 13. Be sure to use loops first to understand the underlying logic
 Day 4:
-( ) 14. Allow users to remove cart items
-( ) 15. Ensure that quantities are combined if the same product is added to the cart multiple times.
+(/) 14. Allow users to remove cart items
+(/) 15. Ensure that quantities are combined if the same product is added to the cart multiple times.
 ( ) 16. Separate the cart total and change the calculations into seperate functions.
 ( ) 17. Handle empty carts, missing products, and invalid quantities.
 ( ) 18. Debug?
@@ -37,7 +37,7 @@ Day 5:
 </head>
 <body>
     <header>
-        <h1>Current Discount: 10% off items over ฿500</h1>
+        <h1>Current Discount: 10% off cart over ฿500</h1>
     </header>
     <section>
         <div class="topnav">
@@ -94,6 +94,13 @@ Day 5:
                 description: "A teddy bear with sunglasses and a mojito. Comes with built in lung functionality and courtesy cigar",
                 price: 295.00,
                 stock: 2
+            },
+            {
+                id: 5,
+                name: "EZ Cheeze 900ml",
+                description: "A large can of spay-on cheese. Meant for crackers and childern under the age of 9.",
+                price: 149.00,
+                stock: 14
             }
         ];
         
@@ -158,6 +165,8 @@ Day 5:
             const product = products.find(item => item.id === Number(productItem.dataset.productId));
             const quantityInput = productItem.querySelector('.quantity-input');
             const quantity = Number(quantityInput.value);
+            const cartItem = cart.find(item => item.id === product.id);
+
 
             if (!Number.isInteger(quantity) || quantity <= 0) {
                 alert('Please enter a valid quantity (a whole number greater than 0).');
@@ -170,13 +179,17 @@ Day 5:
             }
 
             product.stock -= quantity;
-
-            cart.push({
+            // Combines cart quanitites
+            if (cartItem) {
+                cartItem.quantity += quantity;
+            } else {
+                cart.push({
                 id: product.id,
                 name: product.name,
                 price: product.price,
                 quantity: quantity
             });
+            }
             updateCartDisplay();
             updateProductDisplay(product);
         });
@@ -203,33 +216,39 @@ Day 5:
             const sortByPriceHigh = document.getElementById('sort-by-price-high').checked;
 
             const productItems = productList.querySelectorAll('.product-item');
-            for (let i = 0; i < productItems.length; i++) {
-                const productItem = productItems[i];
+            // filter: keep only product cards that match the search and stock options.
+            const matchingItems = Array.from(productItems).filter(productItem => {
                 const productName = productItem.querySelector('.product-name').textContent.toLowerCase();
                 const productId = productItem.dataset.productId.toLowerCase();
                 const productStock = Number(productItem.querySelector('.product-stock').dataset.stock);
                 const matchesSearch = productName.includes(query) || productId.includes(query);
                 const matchesStock = !inStockOnly || productStock > 0;
 
-                productItem.hidden = !matchesSearch || !matchesStock;
-            }
+                return matchesSearch && matchesStock;
+            });
 
-            if (sortByPriceLow || sortByPriceHigh) {
+            // map: apply the visible/hidden state to every product card.
+            Array.from(productItems).map(productItem => {
+                productItem.hidden = !matchingItems.includes(productItem);
+            });
+
+            // Sorting algorithm
+            if (sortByPriceLow || sortByPriceHigh) { // Called by both options
                 const sortedItems = [];
                 for (let i = 0; i < productItems.length; i++) {
-                    sortedItems.push(productItems[i]);
+                    sortedItems.push(productItems[i]); // Move everything to the temporary array
                 }
 
                 for (let i = 1; i < sortedItems.length; i++) {
-                    const currentItem = sortedItems[i];
-                    const currentPrice = Number(currentItem.querySelector('.product-price').dataset.price);
+                    const currentItem = sortedItems[i]; // Store the current item to be sorted
+                    const currentPrice = Number(currentItem.querySelector('.product-price').dataset.price); // Retrieve the price and convert to number format
                     let j = i - 1;
 
                     while (
-                        j >= 0 &&
+                        j >= 0 && // Compare 'product-price' of current sorted item against original
                         Number(sortedItems[j].querySelector('.product-price').dataset.price) > currentPrice
                     ) {
-                        sortedItems[j + 1] = sortedItems[j];
+                        sortedItems[j + 1] = sortedItems[j]; // Move the sorted item up in the line
                         j--;
                     }
 
@@ -239,7 +258,7 @@ Day 5:
                 if (sortByPriceHigh) {
                     sortedItems.reverse();
                 }
-
+                // Update original array
                 for (let i = 0; i < sortedItems.length; i++) {
                     productList.appendChild(sortedItems[i]);
                 }
@@ -287,35 +306,92 @@ Day 5:
             // Clear cart display
             cartItems.innerHTML = '';
             let totalItems = 0;
-            let totalValue = 0;
+            const totals = calculateCartTotals(cart);
 
             // Display each item in the cart
-            cart.forEach(item => {
+            cart.forEach((item, index) => {
                 const li = document.createElement('li');
                 li.textContent = `${item.name} - ฿${item.price.toFixed(2)} x ${item.quantity}`;
+                // Remove Item button
+                const removeButton = document.createElement('button');
+                removeButton.className = 'remove-from-cart';
+                removeButton.type = 'button';
+                removeButton.dataset.cartIndex = index;
+                removeButton.textContent = 'Remove';
+
+                li.appendChild(removeButton);
                 cartItems.appendChild(li);
 
                 totalItems += item.quantity;
-                totalValue += item.price * item.quantity;
             });
 
             // Update cart count
             cartCount.textContent = totalItems;
 
             // Update subtotal
-            subtotal.textContent = `฿${totalValue.toFixed(2)}`;
 
-            // Apply a 10% discount if the total value is greater than ฿50
-            if (totalValue > 50) {
+            subtotal.textContent = `฿${totals.subtotal.toFixed(2)}`;
+            discount.textContent = `฿${totals.discount.toFixed(2)}`;
+
+
+            // Apply a 10% discount if the total value is greater than ฿500
+            /* if (totalValue > 500) {
                 discount.textContent = `฿${(totalValue * 0.1).toFixed(2)}`;
                 totalValue -= totalValue * 0.1;
             } else {
                 discount.textContent = '฿0.00';
-            }
+            } */
             // Update total
-            cartTotal = totalValue;
-            total.textContent = `฿${(totalValue).toFixed(2)}`;
+            cartTotal = totals.total;
+            total.textContent = `฿${totals.total.toFixed(2)}`;
+            inspectCartState('Cart display updated');
+
         }
+        // Function version of cart total calculation, is called when needed
+        function calculateCartTotals(cart) {
+            // reduce: accumulate the cart subtotal from each existing cart item.
+            const subtotal = cart.reduce(
+                (currSubtotal, item) => currSubtotal + item.price * item.quantity,
+                0
+            );
+
+            const discount = subtotal > 500 ? subtotal * 0.1 : 0;
+
+            return {
+                subtotal,
+                discount,
+                total: subtotal - discount
+            };
+        } 
+
+        function calculateChange(paymentAmount, total) {
+            return paymentAmount - total;
+        }
+
+        document.getElementById('cart-items').addEventListener('click', event => {
+            const removeButton = event.target.closest('.remove-from-cart');
+            if (!removeButton) {
+                return;
+            }
+
+            const cartIndex = Number(removeButton.dataset.cartIndex);
+            if (!Number.isInteger(cartIndex) || cartIndex < 0 || cartIndex >= cart.length) {
+                return;
+            }
+
+            const item = cart[cartIndex];
+            // Finds original product in original array to restore stock
+            const product = products.find(product => product.id === item.id);
+            if (!product) {
+                console.error(`Cannot restore stock: product ${item.id} was not found.`);
+                return;
+            }
+            // Remove item from cart array
+            cart.splice(cartIndex, 1);
+            product.stock += item.quantity;
+            updateCartDisplay();
+            updateProductDisplay(product);
+        });
 
         // Calculate change once, regardless of whether the cart has items.
         document.getElementById('calculate-change').addEventListener('click', () => {
@@ -336,7 +412,7 @@ Day 5:
                 return;
             }
 
-            const change = paymentAmount - cartTotal;
+            const change = calculateChange(paymentAmount, cartTotal);
             if (change < 0) {
                 paymentMessage.textContent = 'Insufficient payment. Please provide enough money to cover the total.';
                 changeAmount.textContent = '฿0.00';
